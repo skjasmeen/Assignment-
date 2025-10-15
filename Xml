@@ -1,0 +1,142 @@
+Quick fix (paste a working schema)
+
+In the Source tab of your XSD, replace everything with this minimal working file:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <!-- Root element that you will send on JMS -->
+  <xs:element name="Order">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="OrderId" type="xs:string"/>
+        <xs:element name="CustomerName" type="xs:string"/>
+        <xs:element name="OrderDate" type="xs:string"/>
+        <xs:element name="Items">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Item" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="LineNo" type="xs:int"/>
+                    <xs:element name="Sku" type="xs:string"/>
+                    <xs:element name="Qty" type="xs:int"/>
+                    <xs:element name="Price" type="xs:decimal"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Totals" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Amount" type="xs:decimal"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+
+
+Click Revalidate. The red error should disappear.
+
+If you want a wrapper with multiple orders for your archive file, use this instead:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="Orders">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Order" maxOccurs="unbounded">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="OrderId" type="xs:string"/>
+              <xs:element name="CustomerName" type="xs:string"/>
+              <xs:element name="OrderDate" type="xs:string"/>
+              <xs:element name="Totals" minOccurs="0">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Amount" type="xs:decimal"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="Items">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Item" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="LineNo" type="xs:int"/>
+                          <xs:element name="Sku" type="xs:string"/>
+                          <xs:element name="Qty" type="xs:int"/>
+                          <xs:element name="Price" type="xs:decimal"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
+
+If you prefer the GUI (what to click in your screenshot)
+
+You’re on the Elements tab and you currently have an element named root with Content = Empty. Do this:
+
+Select root (the element row).
+
+In the Content Model area where it says Empty, change it to sequence.
+
+Click the small “+” (add) in the sequence grid to add child elements:
+
+Add OrderId → set Type = xs:string
+
+Add CustomerName → xs:string
+
+Add OrderDate → xs:string
+
+Add Items → complex:
+
+With Items selected, set Content Model = sequence
+
+Add child Item → set maxOccurs = unbounded
+
+Select Item, set Content Model = sequence
+
+Add children under Item:
+
+LineNo (xs:int)
+
+Sku (xs:string)
+
+Qty (xs:int)
+
+Price (xs:decimal)
+
+(Optional) Add Totals → complex → sequence → child Amount (xs:decimal)
+
+If you want the root element name to be Order (or Orders), rename root to Order (or Orders) in the element name cell.
+
+Press Revalidate.
+
+Tip: In BW5 editor, the namespace prefix can be xs or xsd—both are fine as long as the schema has xmlns:xs="http://www.w3.org/2001/XMLSchema" (or xmlns:xsd=…). The error you saw happens when that declaration is missing or a tag isn’t closed.
+
+Common gotchas to avoid
+
+Missing namespace on the first line. Always have:
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+
+Unclosed tags like <xs:element name="OrderId"> without a closing </xs:element> or />.
+
+Wrong content model: If an element should have children, set Content Model = sequence, not Empty.
+
+maxOccurs for lists: set maxOccurs="unbounded" on Item.
